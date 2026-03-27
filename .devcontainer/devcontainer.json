@@ -1,0 +1,10 @@
+{
+  "name": "AI Stock App",
+  "build": {
+    "dockerfile": "../Dockerfile"
+  },
+  "settings": {},
+  "extensions": [
+    "ms-python.python"
+  ]
+}
