@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
+import 'cart_provider.dart';
 
 // ── Services providers ───────────────────────────────────────────────
 final authServiceProvider = Provider<AuthService>((ref) => AuthService());
@@ -139,16 +140,40 @@ Provider<AsyncValue<List<ProductModel>>>((ref) {
   final query = ref.watch(searchQueryProvider).toLowerCase();
   final category = ref.watch(selectedCategoryProvider);
   final quality = ref.watch(selectedQualityProvider);
+  final cartItems = ref.watch(cartProvider); // ✅ écoute le panier
 
   return productsAsync.whenData((products) {
-    return products.where((p) {
+    return products
+        .map((p) {
+      // Soustraire la quantité dans le panier
+      final qtyInCart = cartItems
+          .where((i) => i.product.id == p.id)
+          .fold(0, (sum, i) => sum + i.quantity);
+
+      // Retourner le produit avec stock ajusté
+      return ProductModel(
+        id: p.id,
+        name: p.name,
+        category: p.category,
+        quantity: (p.quantity - qtyInCart).clamp(0, p.quantity),
+        quality: p.quality,
+        price: p.price,
+        addedAt: p.addedAt,
+        maxStorageDays: p.maxStorageDays,
+        imageUrl: p.imageUrl,
+      );
+    })
+        .where((p) {
       final matchQuery = query.isEmpty ||
           p.name.toLowerCase().contains(query) ||
           p.category.toLowerCase().contains(query);
-      final matchCategory = category == null || p.category == category;
-      final matchQuality = quality == null || p.quality.name == quality;
+      final matchCategory =
+          category == null || p.category == category;
+      final matchQuality =
+          quality == null || p.quality.name == quality;
       return matchQuery && matchCategory && matchQuality;
-    }).toList();
+    })
+        .toList();
   });
 });
 

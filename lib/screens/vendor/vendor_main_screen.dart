@@ -17,11 +17,8 @@ class VendorMainScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    int currentIndex = 0;
-    try {
-      final location = GoRouterState.of(context).matchedLocation;
-      currentIndex = _locationToIndex(location);
-    } catch (_) {}
+    final location = GoRouterState.of(context).matchedLocation;
+    final currentIndex = _locationToIndex(location);
     final unreadCount = ref.watch(unreadAlertsCountProvider);
 
     return Scaffold(
